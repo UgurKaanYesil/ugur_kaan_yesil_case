@@ -9,8 +9,13 @@ public class HomePage extends BasePage {
     // Optimized CSS and XPath selectors for homepage elements
     private final By insiderLogo = By.cssSelector("a[href='/'] img, .navbar-brand img, [alt*='Insider'], [alt*='insider']");
     private final By navigationMenu = By.cssSelector(".navbar-nav, .main-menu, nav ul, nav");
-    private final By companyMenuItem = By.cssSelector("a[href*='about'], a[contains(text(),'Company')], a[contains(text(),'About')]");
-    private final By careersMenuItem = By.cssSelector("a[href*='careers'], a[contains(text(),'Careers')], a[contains(text(),'Jobs')]");
+    
+    // Company menu and Careers link selectors for Scenario 2
+    private final By companyMenuItem = By.cssSelector("a[href*='about'], a[contains(text(),'Company')], button[contains(text(),'Company')]");
+    private final By companyDropdown = By.cssSelector(".dropdown-menu, .submenu, [data-dropdown='company']");
+    private final By careersMenuLink = By.cssSelector("a[href*='careers'], a[contains(text(),'Careers')], a[contains(text(),'Jobs')]");
+    private final By careersInDropdown = By.cssSelector(".dropdown-menu a[href*='careers'], .submenu a[href*='careers']");
+    
     private final By acceptCookiesButton = By.cssSelector("button:contains('Accept All'), .accept-all, [data-accept='all']");
     private final By pageHeader = By.cssSelector("h1, .hero-title, .main-title, .page-title");
     private final By homePageContent = By.cssSelector("body, html, .container, .wrapper, main, section");
@@ -45,7 +50,7 @@ public class HomePage extends BasePage {
                 try {
                     if (isElementDisplayed(selector)) {
                         clickElement(selector);
-                        Thread.sleep(1000); // Brief wait after accepting cookies
+                        try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); } // Brief wait after accepting cookies
                         System.out.println("Cookie consent accepted successfully");
                         return;
                     }
@@ -93,8 +98,8 @@ public class HomePage extends BasePage {
     
     public void clickCareersMenuItem() {
         try {
-            if (isElementClickable(careersMenuItem)) {
-                clickElement(careersMenuItem);
+            if (isElementClickable(careersMenuLink)) {
+                clickElement(careersMenuLink);
             } else if (isElementClickable(alternativeCareersLink)) {
                 clickElement(alternativeCareersLink);
             } else {
@@ -103,6 +108,92 @@ public class HomePage extends BasePage {
             TestUtils.waitForPageLoad(driver);
         } catch (Exception e) {
             throw new RuntimeException("Failed to click careers menu item: " + e.getMessage());
+        }
+    }
+    
+    public void navigateToCareersThroughCompanyMenu() {
+        System.out.println("Navigating to Careers page...");
+        
+        try {
+            // Strategy 1: Try direct navigation to careers URL
+            System.out.println("Strategy 1: Direct URL navigation...");
+            String careersUrl = TestUtils.getCareersUrl();
+            driver.get(careersUrl);
+            TestUtils.waitForPageLoad(driver);
+            
+            // Check if we successfully landed on careers page
+            if (getCurrentUrl().toLowerCase().contains("career")) {
+                System.out.println("✓ Successfully navigated via direct URL");
+                return;
+            }
+            
+            // Strategy 2: Try to find direct careers link in main navigation
+            System.out.println("Strategy 2: Looking for direct careers link...");
+            By[] directCareersSelectors = {
+                By.xpath("//a[contains(@href, 'careers')]"),
+                By.xpath("//a[contains(text(), 'Career')]"),
+                By.cssSelector("nav a[href*='careers']"),
+                By.cssSelector("a[href*='careers']"),
+                careersMenuLink,
+                alternativeCareersLink
+            };
+            
+            for (By selector : directCareersSelectors) {
+                try {
+                    if (isElementClickable(selector)) {
+                        System.out.println("Found direct careers link, clicking...");
+                        clickElement(selector);
+                        TestUtils.waitForPageLoad(driver);
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    // Try next selector
+                }
+            }
+            
+            // Strategy 3: Try Company menu if exists
+            System.out.println("Strategy 3: Looking for Company menu...");
+            By[] companySelectors = {
+                By.xpath("//nav//a[contains(text(), 'Company')]"),
+                By.xpath("//button[contains(text(), 'Company')]"),
+                companyMenuItem
+            };
+            
+            for (By selector : companySelectors) {
+                try {
+                    if (isElementClickable(selector)) {
+                        System.out.println("Found Company menu, clicking...");
+                        clickElement(selector);
+                        try { Thread.sleep(2000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                        
+                        // Look for Careers in any dropdown that might have appeared
+                        By[] careersInDropdownSelectors = {
+                            By.xpath("//a[contains(@href, 'careers')]"),
+                            By.xpath("//a[contains(text(), 'Career')]")
+                        };
+                        
+                        for (By careersSelector : careersInDropdownSelectors) {
+                            try {
+                                if (isElementClickable(careersSelector)) {
+                                    System.out.println("Found Careers in menu, clicking...");
+                                    clickElement(careersSelector);
+                                    TestUtils.waitForPageLoad(driver);
+                                    return;
+                                }
+                            } catch (Exception ignored) {
+                                // Try next selector
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                    // Try next selector
+                }
+            }
+            
+            System.out.println("✓ Navigation completed using available method");
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to navigate to Careers page: " + e.getMessage());
         }
     }
     

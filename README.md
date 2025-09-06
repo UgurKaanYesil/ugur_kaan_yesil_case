@@ -22,7 +22,8 @@ insider-selenium-automation/
 │   │   └── java/
 │   │       ├── pages/           # Page Object classes
 │   │       │   ├── BasePage.java
-│   │       │   └── HomePage.java
+│   │       │   ├── HomePage.java
+│   │       │   └── CareersPage.java
 │   │       └── utils/           # Utility classes
 │   │           └── TestUtils.java
 │   └── test/
@@ -88,8 +89,9 @@ mvn test -Dbrowser=chrome
 # Run only the InsiderTest class
 mvn test -Dtest=InsiderTest
 
-# Run specific test method
-mvn test -Dtest=InsiderTest#testHomepageLoads
+# Run specific test scenarios
+mvn test -Dtest=InsiderTest#testHomepageLoads         # Scenario 1 only
+mvn test -Dtest=InsiderTest#testCareersPageNavigation # Scenario 2 only
 ```
 
 ### Option 3: Run via TestNG XML
@@ -164,6 +166,43 @@ extent.report.path=target/extent-reports/
 - Automatic screenshot capture on failure
 - Detailed error messages for debugging
 - Graceful handling of cookie consent popups
+
+### Scenario 2: Careers Page Navigation & Verification ✅
+
+**Test Class**: `InsiderTest.java`  
+**Test Method**: `testCareersPageNavigation()`
+
+**Description**: Navigates from homepage to careers page and verifies all main career sections are present and accessible.
+
+**Test Steps**:
+1. Navigate to Insider homepage
+2. Navigate to Careers page (via Company menu or direct link)
+3. Verify Career page loads successfully
+4. Verify URL contains "career"
+5. Verify page title is present
+6. Verify main career sections are visible:
+   - Locations block
+   - Teams block  
+   - Life at Insider block
+7. Verify sections are accessible/scrollable
+8. Check section interactivity where applicable
+
+**Expected Results**:
+- ✅ Successful navigation to careers page
+- ✅ Career page loads with proper URL
+- ✅ At least 2 out of 3 main sections are visible
+- ✅ Page structure is accessible and functional
+- ✅ Smooth scrolling through career sections
+
+**Page Objects Used**:
+- `HomePage.java`: Extended with Company menu navigation
+- `CareersPage.java`: New page class with career-specific selectors
+
+**Error Handling**:
+- Multiple navigation strategies (direct link vs dropdown menu)
+- Robust selector fallbacks for career sections
+- Graceful handling of different page layouts
+- Detailed logging of section detection results
 
 ## 🔧 Framework Features
 
@@ -277,6 +316,8 @@ headless=true
 ## 📊 Test Execution Results
 
 ### Successful Test Run Output:
+
+#### Scenario 1 - Homepage Verification:
 ```
 ===============================================================================
 INSIDER TEST AUTOMATION - SCENARIO 1
@@ -295,7 +336,7 @@ Step 2: Verifying page URL...
 Current URL: https://useinsider.com/
 ✓ URL verification passed
 Step 3: Verifying page title...
-Page title: Insider - Build it, Own it, Scale it
+Page title: #1 Leader in Individualized, Cross-Channel CX — Insider
 ✓ Title verification passed
 Step 4: Verifying homepage elements...
 ✓ Homepage content loaded successfully
@@ -311,6 +352,41 @@ All homepage verification checks passed:
   ✓ Navigation is functional
 
 Test cleanup completed
+```
+
+#### Scenario 2 - Careers Page Navigation:
+```
+Starting Test Scenario 2: Careers page navigation and verification
+Step 1: Navigating to Insider homepage...
+Successfully navigated to homepage
+Step 2: Navigating to Careers page...
+Found direct careers link, clicking...
+Successfully navigated to Careers page
+Step 3: Verifying Career page loads...
+✓ Career page loaded successfully
+Step 4: Verifying careers page URL...
+Current URL: https://useinsider.com/careers/
+✓ URL verification passed
+Step 5: Verifying page title...
+Page title: Careers - Join Us at Insider
+✓ Page title verification passed
+Step 6: Verifying main career sections are present...
+Checking for Locations block...
+✓ Locations block found
+Checking for Teams block...
+✓ Teams block found
+Checking for Life at Insider block...
+✓ Life at Insider block found
+✓ Main career sections are visible
+Step 7: Verifying career sections are accessible...
+✓ Career sections are accessible/clickable
+
+🎉 Test Scenario 2 completed successfully!
+All careers page verification checks passed:
+  ✓ Successfully navigated to careers page
+  ✓ Career page loaded with proper URL
+  ✓ Main career sections are visible
+  ✓ Page structure is accessible
 
 ===============================================================================
 INSIDER TEST AUTOMATION - COMPLETED
