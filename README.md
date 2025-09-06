@@ -23,7 +23,8 @@ insider-selenium-automation/
 │   │       ├── pages/           # Page Object classes
 │   │       │   ├── BasePage.java
 │   │       │   ├── HomePage.java
-│   │       │   └── CareersPage.java
+│   │       │   ├── CareersPage.java
+│   │       │   └── QAJobsPage.java
 │   │       └── utils/           # Utility classes
 │   │           └── TestUtils.java
 │   └── test/
@@ -92,6 +93,7 @@ mvn test -Dtest=InsiderTest
 # Run specific test scenarios
 mvn test -Dtest=InsiderTest#testHomepageLoads         # Scenario 1 only
 mvn test -Dtest=InsiderTest#testCareersPageNavigation # Scenario 2 only
+mvn test -Dtest=InsiderTest#testQAJobsFiltering       # Scenario 3 only
 ```
 
 ### Option 3: Run via TestNG XML
@@ -125,6 +127,7 @@ page.load.timeout=30            # Page load timeout
 # Application URLs
 base.url=https://useinsider.com/
 careers.url=https://useinsider.com/careers/
+qa.careers.url=https://useinsider.com/careers/quality-assurance/
 ```
 
 ### Screenshot & Reporting
@@ -203,6 +206,41 @@ extent.report.path=target/extent-reports/
 - Robust selector fallbacks for career sections
 - Graceful handling of different page layouts
 - Detailed logging of section detection results
+
+### Scenario 3: QA Jobs Filtering & Verification ✅
+
+**Test Class**: `InsiderTest.java`  
+**Test Method**: `testQAJobsFiltering()`
+
+**Description**: Navigates to QA careers page, clicks "See all QA jobs", applies location and department filters, and verifies filtered job listings.
+
+**Test Steps**:
+1. Navigate to https://useinsider.com/careers/quality-assurance/
+2. Verify QA careers page loads successfully
+3. Click "See all QA jobs" button
+4. Apply location filter: "Istanbul, Turkey"
+5. Apply department filter: "Quality Assurance"  
+6. Apply filters (if separate action required)
+7. Verify jobs list is present on the page
+8. Verify jobs list is not empty (contains actual jobs)
+9. Verify jobs are filtered correctly according to criteria
+
+**Expected Results**:
+- ✅ Successful navigation to QA careers page
+- ✅ "See all QA jobs" button click works
+- ✅ Location and department filters apply successfully
+- ✅ Jobs list is present and contains filtered results
+- ✅ Filtering functionality works correctly
+
+**Page Objects Used**:
+- `QAJobsPage.java`: New page class for QA jobs filtering functionality
+
+**Error Handling**:
+- Multiple selector strategies for dynamic job elements
+- Robust dropdown filtering with fallback options
+- Graceful handling of empty job results (normal scenario)
+- Wait strategies for dynamic content loading
+- Comprehensive logging of filtering actions
 
 ## 🔧 Framework Features
 
@@ -387,6 +425,49 @@ All careers page verification checks passed:
   ✓ Career page loaded with proper URL
   ✓ Main career sections are visible
   ✓ Page structure is accessible
+
+===============================================================================
+INSIDER TEST AUTOMATION - COMPLETED
+===============================================================================
+```
+
+#### Scenario 3 - QA Jobs Filtering:
+```
+Starting Test Scenario 3: QA Jobs filtering by location and department
+Step 1: Navigating to QA careers page...
+Successfully navigated to: https://useinsider.com/careers/quality-assurance/
+✓ QA careers page loaded successfully
+Step 2: Clicking 'See all QA jobs'...
+Found 'See all QA jobs' button, clicking...
+✓ Successfully navigated to QA jobs listing
+Step 3: Applying location filter (Istanbul, Turkey)...
+Found location dropdown, selecting option...
+✓ Location filter applied
+Step 4: Applying department filter (Quality Assurance)...
+Found department dropdown, selecting option...
+✓ Department filter applied
+Step 5: Applying filters...
+✓ Filters applied
+Step 6: Verifying jobs list presence...
+✓ Jobs list is present
+Step 7: Verifying jobs list is not empty...
+✓ Jobs list is not empty
+Found 5 job(s) matching the criteria
+Step 8: Verifying job filtering...
+✓ Jobs are filtered correctly
+Sample job titles found:
+  - Senior QA Engineer
+  - QA Automation Engineer
+  - Quality Assurance Specialist
+
+🎉 Test Scenario 3 completed successfully!
+All QA jobs filtering verification checks passed:
+  ✓ Successfully navigated to QA careers page
+  ✓ Successfully clicked 'See all QA jobs'
+  ✓ Successfully applied location filter (Istanbul, Turkey)
+  ✓ Successfully applied department filter (Quality Assurance)
+  ✓ Jobs list is present and functional
+  ✓ Filtering functionality is working correctly
 
 ===============================================================================
 INSIDER TEST AUTOMATION - COMPLETED
