@@ -175,4 +175,8 @@ public class TestUtils {
     public static String getCareersUrl() {
         return getProperty("careers.url");
     }
+    
+    public static String getQACareersUrl() {
+        return getProperty("qa.careers.url");
+    }
 }
