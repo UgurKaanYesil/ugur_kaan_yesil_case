@@ -324,17 +324,3 @@ INSIDER TEST AUTOMATION - COMPLETED
 3. Include proper error handling and logging
 4. Write clean, maintainable code with meaningful comments
 5. Test thoroughly before submitting changes
-
-## 📞 Support
-
-For issues, questions, or contributions:
-1. Check the troubleshooting section above
-2. Review test execution logs for detailed error information
-3. Verify configuration settings in `config.properties`
-4. Ensure all prerequisites are properly installed
-
----
-
-**Framework Version**: 1.0  
-**Last Updated**: 2024  
-**Maintained By**: Test Automation Team
