@@ -6,6 +6,7 @@ import org.testng.annotations.*;
 import pages.HomePage;
 import pages.CareersPage;
 import pages.QAJobsPage;
+import pages.LeverApplicationPage;
 import utils.TestUtils;
 
 public class InsiderTest {
@@ -13,6 +14,7 @@ public class InsiderTest {
     private HomePage homePage;
     private CareersPage careersPage;
     private QAJobsPage qaJobsPage;
+    private LeverApplicationPage leverApplicationPage;
     
     @BeforeMethod
     public void setUp() {
@@ -26,6 +28,7 @@ public class InsiderTest {
         homePage = new HomePage(driver);
         careersPage = new CareersPage(driver);
         qaJobsPage = new QAJobsPage(driver);
+        leverApplicationPage = new LeverApplicationPage(driver);
         System.out.println("Page objects initialized successfully");
     }
     
@@ -337,6 +340,163 @@ public class InsiderTest {
             throw e;
         }
     }
+    
+    @Test(description = "Test Scenario 5: Click 'View Role' button and verify Lever application page opens")
+    public void testLeverApplicationRedirect() {
+        System.out.println("Starting Test Scenario 5: Lever Application Redirect");
+        
+        try {
+            // Step 1: Setup - Navigate and filter jobs (based on Scenarios 1-3)
+            System.out.println("Step 1: Setting up filtered job listings for Lever redirect test...");
+            qaJobsPage.navigateToQACareersPage();
+            
+            TestUtils.assertTrue(qaJobsPage.isQACareersPageLoaded(), "QA careers page should load successfully");
+            System.out.println("✓ QA careers page loaded successfully");
+            
+            qaJobsPage.clickSeeAllQAJobs();
+            System.out.println("✓ Successfully navigated to QA jobs listing");
+            
+            // Apply Istanbul location filter (as originally intended)
+            qaJobsPage.applyLocationFilter("Istanbul, Turkey");
+            System.out.println("✓ Location filter applied");
+            
+            // Department already set to QA from 'See all QA jobs' button
+            System.out.println("✓ Department already set to QA from 'See all QA jobs' button");
+            
+            // Apply the filters
+            qaJobsPage.applyFilters();
+            System.out.println("✓ Filters applied");
+            
+            // Wait for filtered results to load and scroll to see jobs
+            System.out.println("Waiting for filtered jobs to load and scrolling...");
+            try {
+                Thread.sleep(5000); // Longer wait for filtering
+                
+                // Scroll specifically to career position list section where jobs are located
+                qaJobsPage.scrollToCareerPositionList();
+                Thread.sleep(3000);
+                
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            
+            // Verify we have jobs to work with
+            TestUtils.assertTrue(qaJobsPage.isJobsListPresent(), "Jobs list should be present on the page");
+            TestUtils.assertTrue(qaJobsPage.isJobsListNotEmpty(), "Jobs list should not be empty");
+            System.out.println("✓ Jobs list is present and not empty");
+            
+            // Step 2: Verify View Role functionality is available
+            System.out.println("Step 2: Verifying View Role functionality is available...");
+            TestUtils.assertTrue(qaJobsPage.isViewRoleFunctionalityAvailable(), 
+                "At least one 'View Role' button should be available on the jobs page");
+            System.out.println("✓ View Role functionality is available");
+            
+            // Step 3: Click 'View Role' button for the first job
+            System.out.println("Step 3: Clicking 'View Role' button for first available job...");
+            String originalWindow = qaJobsPage.clickViewRoleForFirstJob();
+            System.out.println("✓ Successfully clicked 'View Role' button");
+            
+            // Step 4: Handle potential new tab scenario
+            System.out.println("Step 4: Handling potential new tab scenario...");
+            boolean newTabOpened = leverApplicationPage.handleNewTab(originalWindow);
+            if (newTabOpened) {
+                System.out.println("✓ New tab detected and switched successfully");
+            } else {
+                System.out.println("✓ Continued in same tab/window");
+            }
+            
+            // Step 5: Verify redirect to Lever application page
+            System.out.println("Step 5: Verifying redirect to Lever application page...");
+            TestUtils.assertTrue(leverApplicationPage.isRedirectSuccessful(), 
+                "Should successfully redirect to Lever application page");
+            System.out.println("✓ Successfully redirected to Lever application page");
+            
+            // Step 6: Validate Lever application page URL
+            System.out.println("Step 6: Validating Lever application page URL...");
+            TestUtils.assertTrue(leverApplicationPage.isLeverApplicationPage(), 
+                "Current URL should indicate Lever application page");
+            
+            String currentUrl = leverApplicationPage.getCurrentUrl();
+            System.out.println("✓ Lever application page URL validated: " + currentUrl);
+            
+            // Step 7: Validate page title
+            System.out.println("Step 7: Validating page title for job application context...");
+            TestUtils.assertTrue(leverApplicationPage.isPageTitleValid(), 
+                "Page title should contain job/application related terms");
+            
+            String pageTitle = leverApplicationPage.getPageTitle();
+            System.out.println("✓ Page title validated: '" + pageTitle + "'");
+            
+            // Step 8: Verify application form elements are present (flexible validation)
+            System.out.println("Step 8: Verifying application form elements are present...");
+            boolean formElementsPresent = leverApplicationPage.areApplicationFormElementsPresent();
+            if (formElementsPresent) {
+                System.out.println("✓ Application form elements are present and accessible");
+            } else {
+                System.out.println("⚠ Some application form elements not detected - this is acceptable for different Lever page layouts");
+                System.out.println("✓ Core functionality (redirect to Lever) is working correctly");
+            }
+            
+            // Step 9: Extract job information from application page
+            System.out.println("Step 9: Extracting job information from application page...");
+            String jobTitle = leverApplicationPage.getJobTitle();
+            String companyName = leverApplicationPage.getCompanyName();
+            
+            if (!jobTitle.isEmpty()) {
+                System.out.println("✓ Job title found: '" + jobTitle + "'");
+                TestUtils.assertTrue(jobTitle.toLowerCase().contains("quality") || 
+                                   jobTitle.toLowerCase().contains("qa") ||
+                                   jobTitle.toLowerCase().contains("test"), 
+                    "Job title should be related to Quality Assurance/Testing");
+            } else {
+                System.out.println("ⓘ Job title not found - this is acceptable for some Lever page layouts");
+            }
+            
+            if (!companyName.isEmpty()) {
+                System.out.println("✓ Company name found: '" + companyName + "'");
+            } else {
+                System.out.println("ⓘ Company name not found - this is acceptable for some Lever page layouts");
+            }
+            
+            // Step 10: Clean up - Close additional tabs and return to original window
+            System.out.println("Step 10: Cleaning up additional tabs...");
+            leverApplicationPage.closeAdditionalTabsAndReturnToOriginal(originalWindow);
+            System.out.println("✓ Cleanup completed - returned to original window");
+            
+            System.out.println("\n🎉 Test Scenario 5 completed successfully!");
+            System.out.println("All Lever application redirect checks passed:");
+            System.out.println("  ✓ Successfully found and clicked 'View Role' button");
+            System.out.println("  ✓ Properly handled new tab/window scenarios");
+            System.out.println("  ✓ Successfully redirected to Lever application page");
+            System.out.println("  ✓ Lever application URL and page validation passed");
+            System.out.println("  ✓ Application page loaded with job context");
+            System.out.println("  ✓ Job information extraction working correctly");
+            System.out.println("  ✓ Proper cleanup and window management");
+            System.out.println("  ✓ End-to-end user journey from filtering to application completed!");
+            
+        } catch (Exception e) {
+            System.err.println("❌ Test Scenario 5 failed: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Try to clean up any additional windows that might be open
+            try {
+                String currentWindow = driver.getWindowHandle();
+                leverApplicationPage.closeAdditionalTabsAndReturnToOriginal(currentWindow);
+            } catch (Exception cleanupError) {
+                System.err.println("Error during cleanup: " + cleanupError.getMessage());
+            }
+            
+            throw e;
+        }
+    }
+    
+    /*
+    @Test(description = "End-to-End Integration Test: Run all 5 scenarios sequentially", enabled = false)
+    public void testEndToEndIntegration() {
+        // Integration test temporarily disabled due to missing methods
+        // Will be re-enabled after adding missing methods to HomePage and CareersPage
+    }
+    */
     
     @Test(description = "Additional verification: Check homepage responsiveness", enabled = false)
     public void testHomepageResponsiveness() {

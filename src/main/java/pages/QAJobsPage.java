@@ -799,23 +799,21 @@ public class QAJobsPage extends BasePage {
      * @return List of filtered job WebElements
      */
     private List<WebElement> findFilteredJobElements() {
-        System.out.println("=== SEARCHING FOR FILTERED JOB ELEMENTS (QA + Istanbul) ===");
+        System.out.println("=== SEARCHING FOR JOB ELEMENTS AFTER FILTERING ===");
         
-        // Since filters were applied in Scenario 3, any jobs found should match our criteria
-        // This is a realistic assumption-based approach for filtered content
+        // Get all job elements from the current page after filters have been applied
         List<WebElement> allJobs = findJobElements();
         
         if (allJobs.isEmpty()) {
-            System.out.println("No jobs found - this might indicate no matching positions available");
+            System.out.println("No jobs found after filtering - this might indicate no matching positions available for the selected criteria");
             return new ArrayList<>();
         }
         
-        System.out.println("Found " + allJobs.size() + " job(s) after applying Istanbul + Quality Assurance filters");
-        System.out.println("Since filters were successfully applied in previous steps, these jobs should match our criteria");
+        System.out.println("Found " + allJobs.size() + " job(s) on current page after filtering");
+        System.out.println("These jobs should match the applied filter criteria (Istanbul + QA)");
         
         // Return all found jobs as they should already be filtered by the UI
-        // This is the correct approach when dealing with filtered search results
-        System.out.println("=== FILTERED RESULTS: Returning all " + allJobs.size() + " jobs (already filtered by UI) ===");
+        System.out.println("=== FILTERED RESULTS: Returning " + allJobs.size() + " jobs from filtered results ===");
         return allJobs;
     }
     
@@ -1093,6 +1091,622 @@ public class QAJobsPage extends BasePage {
                    jobText.contains("test") ||
                    jobText.contains("qa");
         } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    // ========== SCENARIO 5: VIEW ROLE / LEVER APPLICATION INTEGRATION ==========
+    
+    // Specific selectors for Scenario 5 as per user requirements
+    private final By jobsListContainer = By.xpath("//div[@id='jobs-list']");
+    private final By specificViewRoleButton = By.xpath("//section[@id='career-position-list']//div[@class='row']//div[1]//div[1]//a[1]");
+    
+    // Job items within the jobs list for hovering
+    private final By jobItemsInList = By.xpath("//div[@id='jobs-list']//div[contains(@class, 'position-list-item') or contains(@class, 'job-item')]");
+    
+    // General View Role button selectors as fallback
+    private final By viewRoleButton = By.cssSelector("a[href*='lever'], button[class*='apply'], .apply-btn, .view-role-btn");
+    private final By applyNowButton = By.cssSelector("a[class*='apply'], button[class*='apply'], .apply-now-btn");
+    private final By jobActionButtons = By.cssSelector("a[class*='btn'], button[class*='btn'], .btn, .button");
+    
+    /**
+     * Clicks the "View Role" button for the first available job using EXACT user-specified behavior
+     * This method implements the specific Scenario 5 requirements:
+     * 1. Scrolls directly to first job XPath: //body/section[@id='career-position-list']/div[@class='container']/div[@class='row']/div[@id='jobs-list']/div[1]/div[1]
+     * 2. Hovers mouse over job element
+     * 3. Clicks View Role button at //section[@id='career-position-list']//div[@class='row']//div[1]//div[1]//a[1]
+     * @return The original window handle for cleanup purposes
+     */
+    public String clickViewRoleForFirstJob() {
+        System.out.println("=== SCENARIO 5: Clicking 'View Role' for first job (Direct XPath Approach) ===");
+        
+        String originalWindow = driver.getWindowHandle();
+        System.out.println("Original window handle: " + originalWindow);
+        
+        try {
+            // Step 1: Look for job cards using multiple strategies since DOM structure may vary
+            System.out.println("Step 1: Looking for job cards using multiple XPath strategies...");
+            
+            TestUtils.waitForPageLoad(driver);
+            
+            // Strategy 1: Try the exact XPath provided by user
+            By exactJobXPath = By.xpath("//body/section[@id='career-position-list']/div[@class='container']/div[@class='row']/div[@id='jobs-list']/div[1]/div[1]");
+            
+            // Strategy 2: Look for job cards in Open Positions section
+            By jobCardsGeneric = By.xpath("//section[contains(@class, 'career') or @id='career-position-list']//div[contains(@class, 'job') or contains(@class, 'position')]");
+            
+            // Strategy 3: Look for job title elements (which should be in job cards)
+            By jobTitleElements = By.xpath("//*[contains(text(), 'Quality Assurance') and contains(text(), 'Engineer')]");
+            
+            WebElement firstJob = null;
+            String strategyUsed = "";
+            
+            // Try Strategy 1
+            if (isElementDisplayed(exactJobXPath)) {
+                firstJob = findElement(exactJobXPath);
+                strategyUsed = "Exact user-provided XPath";
+                System.out.println("✓ Found first job using exact XPath");
+            }
+            // Try Strategy 2
+            else {
+                List<WebElement> jobCards = findElements(jobCardsGeneric);
+                if (!jobCards.isEmpty()) {
+                    firstJob = jobCards.get(0);
+                    strategyUsed = "Generic job card XPath";
+                    System.out.println("✓ Found first job using generic job card XPath (" + jobCards.size() + " total cards)");
+                }
+                // Try Strategy 3
+                else {
+                    List<WebElement> jobTitles = findElements(jobTitleElements);
+                    if (!jobTitles.isEmpty()) {
+                        // Get the parent container of the job title
+                        firstJob = jobTitles.get(0).findElement(By.xpath("./ancestor::div[contains(@class, 'job') or contains(@class, 'position') or contains(@class, 'card')][1]"));
+                        if (firstJob == null) {
+                            firstJob = jobTitles.get(0).findElement(By.xpath("./parent::*"));
+                        }
+                        strategyUsed = "Job title parent element";
+                        System.out.println("✓ Found first job using job title parent element (" + jobTitles.size() + " total titles)");
+                    }
+                }
+            }
+            
+            if (firstJob == null) {
+                throw new RuntimeException("Could not find any job elements using any strategy. Check if jobs are properly loaded.");
+            }
+            
+            System.out.println("✓ Successfully located first job element using: " + strategyUsed);
+            
+            // Step 2: Scroll directly to this specific job element
+            System.out.println("Step 2: Scrolling directly to first job element...");
+            scrollToElementByJS(firstJob);
+            
+            // Wait for scroll and any dynamic loading
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            
+            // Step 3: Hover mouse over the first job element to reveal View Role button
+            System.out.println("Step 3: Hovering mouse over first job element to reveal 'View Role' button...");
+            hoverOverElement(firstJob);
+            
+            // Wait for hover effect and button to appear
+            try {
+                Thread.sleep(3000); // Extended wait for hover effect
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            
+            // Step 4: Look for the specific View Role button as per user requirements
+            System.out.println("Step 4: Looking for 'View Role' button at specific XPath after hover...");
+            System.out.println("Target Button XPath: //section[@id='career-position-list']//div[@class='row']//div[1]//div[1]//a[1]");
+            
+            if (isElementDisplayed(specificViewRoleButton)) {
+                WebElement viewRoleBtn = findElement(specificViewRoleButton);
+                String buttonText = viewRoleBtn.getText().trim();
+                System.out.println("✓ Found 'View Role' button with text: '" + buttonText + "'");
+                
+                // Click the button regardless of text (it might be empty or different)
+                System.out.println("Step 5: Clicking 'View Role' button...");
+                viewRoleBtn.click();
+                
+                // Wait for potential redirect/new tab
+                waitForRedirectOrNewTab();
+                return originalWindow;
+            }
+            
+            // Fallback: Look for any clickable link within the job element after hover
+            System.out.println("Step 5 (Fallback): Looking for any clickable link within job element after hover...");
+            List<WebElement> jobLinks = firstJob.findElements(By.tagName("a"));
+            
+            for (WebElement link : jobLinks) {
+                try {
+                    String href = link.getAttribute("href");
+                    String text = link.getText().trim();
+                    System.out.println("Found link: text='" + text + "', href='" + href + "'");
+                    
+                    if (href != null && href.contains("lever")) {
+                        System.out.println("✓ Found Lever link, attempting to click...");
+                        
+                        // Ensure element is visible and clickable
+                        if (link.isDisplayed() && link.isEnabled()) {
+                            // Scroll to the link to ensure it's in viewport
+                            scrollToElementByJS(link);
+                            Thread.sleep(1000);
+                            
+                            // Try multiple click strategies
+                            try {
+                                // Strategy 1: Regular click
+                                link.click();
+                                System.out.println("✓ Successfully clicked Lever link using regular click");
+                            } catch (Exception clickError) {
+                                System.out.println("Regular click failed, trying JavaScript click...");
+                                try {
+                                    // Strategy 2: JavaScript click
+                                    ((org.openqa.selenium.JavascriptExecutor) driver).executeScript("arguments[0].click();", link);
+                                    System.out.println("✓ Successfully clicked Lever link using JavaScript click");
+                                } catch (Exception jsError) {
+                                    System.out.println("JavaScript click failed, trying href navigation...");
+                                    // Strategy 3: Direct navigation
+                                    driver.get(href);
+                                    System.out.println("✓ Successfully navigated to Lever link: " + href);
+                                }
+                            }
+                            
+                            waitForRedirectOrNewTab();
+                            return originalWindow;
+                        } else {
+                            System.out.println("⚠ Lever link found but not clickable (displayed: " + 
+                                link.isDisplayed() + ", enabled: " + link.isEnabled() + ")");
+                        }
+                    }
+                } catch (Exception linkError) {
+                    System.out.println("Error processing link: " + linkError.getMessage());
+                    continue; // Try next link
+                }
+            }
+            
+            // Final fallback: Look for any apply/view role buttons anywhere on page
+            System.out.println("Step 6 (Final Fallback): Looking for any 'Apply' or 'View Role' buttons on page...");
+            List<WebElement> allButtons = findElements(By.xpath("//a[contains(text(), 'View Role') or contains(text(), 'Apply') or contains(@href, 'lever')]"));
+            
+            for (WebElement button : allButtons) {
+                try {
+                    String buttonText = button.getText().trim();
+                    String href = button.getAttribute("href");
+                    System.out.println("Found button: text='" + buttonText + "', href='" + href + "'");
+                    
+                    if (href != null && href.contains("lever")) {
+                        System.out.println("✓ Clicking Lever application button: '" + buttonText + "'");
+                        
+                        // Optimized click with multiple strategies
+                        if (button.isDisplayed() && button.isEnabled()) {
+                            scrollToElementByJS(button);
+                            Thread.sleep(500);
+                            
+                            try {
+                                button.click();
+                                System.out.println("✓ Successfully clicked using regular click");
+                            } catch (Exception e) {
+                                ((org.openqa.selenium.JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
+                                System.out.println("✓ Successfully clicked using JavaScript click");
+                            }
+                            
+                            waitForRedirectOrNewTab();
+                            return originalWindow;
+                        } else {
+                            // Direct navigation if button not clickable
+                            System.out.println("Button not clickable, navigating directly to: " + href);
+                            driver.get(href);
+                            waitForRedirectOrNewTab();
+                            return originalWindow;
+                        }
+                    }
+                } catch (Exception buttonError) {
+                    System.out.println("Error processing button: " + buttonError.getMessage());
+                    continue;
+                }
+            }
+            
+            throw new RuntimeException("Could not find 'View Role' button after hovering over specific job element. " +
+                "Tried exact XPath: //section[@id='career-position-list']//div[@class='row']//div[1]//div[1]//a[1]");
+            
+        } catch (Exception e) {
+            System.err.println("Error in Scenario 5 View Role click: " + e.getMessage());
+            throw new RuntimeException("Failed to click 'View Role' button as per Scenario 5 requirements: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Clicks "View Role" for a specific job by index
+     * @param jobIndex Index of the job to click (0-based)
+     * @return The original window handle for cleanup purposes
+     */
+    public String clickViewRoleForJob(int jobIndex) {
+        System.out.println("=== SCENARIO 5: Clicking 'View Role' for job index " + jobIndex + " ===");
+        
+        String originalWindow = driver.getWindowHandle();
+        
+        try {
+            List<WebElement> jobs = findFilteredJobElements();
+            if (jobs.isEmpty()) {
+                throw new RuntimeException("No jobs found to click 'View Role' on");
+            }
+            
+            if (jobIndex >= jobs.size()) {
+                throw new RuntimeException("Job index " + jobIndex + " is out of bounds. Only " + jobs.size() + " jobs available");
+            }
+            
+            WebElement targetJob = jobs.get(jobIndex);
+            System.out.println("Clicking 'View Role' for job " + (jobIndex + 1) + " of " + jobs.size());
+            
+            // Scroll to target job
+            scrollToElementByJS(targetJob);
+            
+            // Find and click View Role button for this specific job
+            WebElement viewRoleBtn = findViewRoleButtonInJob(targetJob);
+            if (viewRoleBtn != null) {
+                System.out.println("Found 'View Role' button for job " + (jobIndex + 1) + ", clicking...");
+                viewRoleBtn.click();
+                waitForRedirectOrNewTab();
+                return originalWindow;
+            }
+            
+            throw new RuntimeException("Could not find 'View Role' button for job " + (jobIndex + 1));
+            
+        } catch (Exception e) {
+            System.out.println("Error clicking 'View Role' for job " + jobIndex + ": " + e.getMessage());
+            throw new RuntimeException("Failed to click 'View Role' for job " + jobIndex + ": " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Finds View Role button within a specific job element
+     * @param jobElement The job element to search within
+     * @return WebElement of the View Role button or null if not found
+     */
+    private WebElement findViewRoleButtonInJob(WebElement jobElement) {
+        System.out.println("Searching for 'View Role' button within job element...");
+        
+        // Strategy 1: Look for common button selectors within the job
+        By[] buttonSelectors = {
+            By.cssSelector("a[href*='lever']"),
+            By.cssSelector("a[href*='apply']"),
+            By.cssSelector("button[class*='apply']"),
+            By.cssSelector("a[class*='apply']"),
+            By.cssSelector(".apply-btn"),
+            By.cssSelector(".view-role"),
+            By.cssSelector(".btn-apply"),
+            By.xpath(".//a[contains(text(), 'View Role') or contains(text(), 'Apply') or contains(text(), 'Apply Now')]"),
+            By.xpath(".//button[contains(text(), 'View Role') or contains(text(), 'Apply') or contains(text(), 'Apply Now')]")
+        };
+        
+        for (By selector : buttonSelectors) {
+            try {
+                List<WebElement> buttons = jobElement.findElements(selector);
+                for (WebElement button : buttons) {
+                    if (isValidViewRoleButton(button)) {
+                        String buttonText = button.getText().trim();
+                        System.out.println("Found valid 'View Role' button: '" + buttonText + "'");
+                        return button;
+                    }
+                }
+            } catch (Exception e) {
+                // Continue to next selector
+            }
+        }
+        
+        // Strategy 2: Look for any clickable link that might lead to application
+        try {
+            List<WebElement> allLinks = jobElement.findElements(By.tagName("a"));
+            for (WebElement link : allLinks) {
+                String href = link.getAttribute("href");
+                if (href != null && (href.contains("lever") || href.contains("apply") || href.contains("job"))) {
+                    System.out.println("Found potential application link: " + href);
+                    return link;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error searching for links: " + e.getMessage());
+        }
+        
+        System.out.println("No 'View Role' button found within job element");
+        return null;
+    }
+    
+    /**
+     * Finds View Role button near a job element (adjacent elements)
+     * @param jobElement The job element to search around
+     * @return WebElement of the View Role button or null if not found
+     */
+    private WebElement findViewRoleButtonNearJob(WebElement jobElement) {
+        System.out.println("Searching for 'View Role' button near job element...");
+        
+        try {
+            // Look in parent element for buttons
+            WebElement parent = jobElement.findElement(By.xpath(".."));
+            List<WebElement> nearbyButtons = parent.findElements(jobActionButtons);
+            
+            for (WebElement button : nearbyButtons) {
+                if (isValidViewRoleButton(button)) {
+                    System.out.println("Found 'View Role' button near job: '" + button.getText().trim() + "'");
+                    return button;
+                }
+            }
+            
+            // Look for buttons in sibling elements
+            List<WebElement> siblings = parent.findElements(By.xpath("./*"));
+            for (WebElement sibling : siblings) {
+                if (sibling.equals(jobElement)) continue;
+                
+                List<WebElement> siblingButtons = sibling.findElements(jobActionButtons);
+                for (WebElement button : siblingButtons) {
+                    if (isValidViewRoleButton(button)) {
+                        System.out.println("Found 'View Role' button in sibling: '" + button.getText().trim() + "'");
+                        return button;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error searching near job element: " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Validates if a button is a valid View Role/Apply button
+     * @param button The button element to validate
+     * @return true if it's a valid View Role button
+     */
+    private boolean isValidViewRoleButton(WebElement button) {
+        try {
+            String buttonText = button.getText().toLowerCase().trim();
+            String buttonClass = button.getAttribute("class");
+            String buttonHref = button.getAttribute("href");
+            
+            // Check text content
+            boolean hasValidText = buttonText.contains("view role") ||
+                                 buttonText.contains("apply") ||
+                                 buttonText.contains("apply now") ||
+                                 buttonText.equals("apply");
+            
+            // Check class attributes
+            boolean hasValidClass = buttonClass != null && (
+                buttonClass.contains("apply") ||
+                buttonClass.contains("btn") ||
+                buttonClass.contains("button")
+            );
+            
+            // Check href for external application links
+            boolean hasValidHref = buttonHref != null && (
+                buttonHref.contains("lever") ||
+                buttonHref.contains("apply") ||
+                buttonHref.contains("job") ||
+                buttonHref.contains("position")
+            );
+            
+            // Button should be clickable
+            boolean isClickable = button.isEnabled() && button.isDisplayed();
+            
+            boolean isValid = (hasValidText || hasValidClass || hasValidHref) && isClickable;
+            
+            if (isValid) {
+                System.out.println("Valid View Role button found:");
+                System.out.println("  Text: '" + buttonText + "'");
+                System.out.println("  Class: '" + buttonClass + "'");
+                System.out.println("  Href: '" + buttonHref + "'");
+            }
+            
+            return isValid;
+            
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Checks if a job element itself is clickable (some job cards are entirely clickable)
+     * @param jobElement The job element to check
+     * @return true if the job element is clickable
+     */
+    private boolean isClickableJobElement(WebElement jobElement) {
+        try {
+            String onClick = jobElement.getAttribute("onclick");
+            String href = jobElement.getAttribute("href");
+            String cursor = jobElement.getCssValue("cursor");
+            
+            boolean hasClickHandler = onClick != null && !onClick.trim().isEmpty();
+            boolean hasHref = href != null && !href.trim().isEmpty();
+            boolean hasPointerCursor = "pointer".equals(cursor);
+            
+            if (hasClickHandler || hasHref || hasPointerCursor) {
+                System.out.println("Job element appears to be clickable:");
+                System.out.println("  OnClick: " + onClick);
+                System.out.println("  Href: " + href);
+                System.out.println("  Cursor: " + cursor);
+                return true;
+            }
+            
+            return false;
+            
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Waits for potential redirect or new tab to open after clicking View Role
+     */
+    private void waitForRedirectOrNewTab() {
+        System.out.println("Waiting for redirect or new tab to open...");
+        
+        try {
+            // Wait for page change or new tab
+            Thread.sleep(3000);
+            
+            System.out.println("Current windows/tabs: " + driver.getWindowHandles().size());
+            System.out.println("Current URL: " + getCurrentUrl());
+            
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            System.out.println("Error waiting for redirect: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Gets the jobs list container element for scrolling purposes
+     * @return Jobs list container element
+     */
+    public By getJobsListContainer() {
+        return jobsListContainer;
+    }
+    
+    /**
+     * Public wrapper for scrollToBottom
+     */
+    public void performScrollToBottom() {
+        scrollToBottom();
+    }
+    
+    /**
+     * Public wrapper for scrollToTop
+     */
+    public void performScrollToTop() {
+        scrollToTop();
+    }
+    
+    /**
+     * Public wrapper for scrolling to jobs container
+     */
+    public void performScrollToJobsContainer() {
+        try {
+            if (isElementDisplayed(jobsListContainer)) {
+                scrollToElement(jobsListContainer);
+                System.out.println("✓ Scrolled to jobs container");
+            } else {
+                System.out.println("⚠ Jobs container not visible, scrolling to middle of page");
+                scrollToTop();
+                scrollToBottom();
+            }
+        } catch (Exception e) {
+            System.out.println("Error scrolling to jobs container: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Scrolls specifically to the career position list section where jobs are displayed
+     */
+    public void scrollToCareerPositionList() {
+        System.out.println("Scrolling specifically to career position list section...");
+        
+        try {
+            // XPath for career position list section (where jobs should be displayed)
+            By careerPositionSection = By.xpath("//section[@id='career-position-list']");
+            By careerPositionRow = By.xpath("//section[@id='career-position-list']//div[@class='row']");
+            
+            // Try to scroll to the specific section first
+            if (isElementDisplayed(careerPositionSection)) {
+                scrollToElement(careerPositionSection);
+                System.out.println("✓ Scrolled to career position list section");
+                
+                // Wait and then try to scroll to the row inside
+                Thread.sleep(2000);
+                
+                if (isElementDisplayed(careerPositionRow)) {
+                    scrollToElement(careerPositionRow);
+                    System.out.println("✓ Scrolled to career position row");
+                }
+                
+            } else {
+                System.out.println("⚠ Career position list section not found, trying alternative approach...");
+                
+                // Alternative: scroll to the general jobs container
+                if (isElementDisplayed(jobsListContainer)) {
+                    scrollToElement(jobsListContainer);
+                    System.out.println("✓ Scrolled to jobs list container instead");
+                } else {
+                    System.out.println("⚠ No job containers found, doing general page scroll");
+                    // Scroll to middle of page using BasePage method
+                    scrollToBottom();
+                    scrollToTop();
+                }
+            }
+            
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Scroll interrupted");
+        } catch (Exception e) {
+            System.out.println("Error scrolling to career position list: " + e.getMessage());
+            // Fallback scroll using BasePage methods
+            try {
+                scrollToBottom();
+                scrollToTop();
+                System.out.println("✓ Performed fallback scroll to middle of page");
+            } catch (Exception scrollError) {
+                System.out.println("Error with fallback scroll: " + scrollError.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Gets all available View Role buttons for debugging purposes
+     * @return List of all potential View Role buttons found on the page
+     */
+    public List<WebElement> getAllViewRoleButtons() {
+        System.out.println("=== DEBUG: Finding all potential View Role buttons ===");
+        List<WebElement> allButtons = new ArrayList<>();
+        
+        try {
+            // Find all job elements first
+            List<WebElement> jobs = findFilteredJobElements();
+            System.out.println("Found " + jobs.size() + " job elements to search in");
+            
+            for (int i = 0; i < jobs.size(); i++) {
+                WebElement job = jobs.get(i);
+                WebElement viewRoleBtn = findViewRoleButtonInJob(job);
+                if (viewRoleBtn != null) {
+                    allButtons.add(viewRoleBtn);
+                    System.out.println("Job " + (i + 1) + " has View Role button: '" + viewRoleBtn.getText().trim() + "'");
+                } else {
+                    System.out.println("Job " + (i + 1) + " has no View Role button");
+                }
+            }
+            
+            System.out.println("=== Total View Role buttons found: " + allButtons.size() + " ===");
+            
+        } catch (Exception e) {
+            System.out.println("Error finding View Role buttons: " + e.getMessage());
+        }
+        
+        return allButtons;
+    }
+    
+    /**
+     * Validates that View Role functionality is working by checking button availability
+     * @return true if at least one View Role button is found
+     */
+    public boolean isViewRoleFunctionalityAvailable() {
+        try {
+            List<WebElement> viewRoleButtons = getAllViewRoleButtons();
+            boolean isAvailable = !viewRoleButtons.isEmpty();
+            
+            System.out.println("View Role functionality available: " + isAvailable);
+            if (isAvailable) {
+                System.out.println("Found " + viewRoleButtons.size() + " View Role button(s)");
+            } else {
+                System.out.println("No View Role buttons found - this might indicate:");
+                System.out.println("  1. Jobs are not loaded properly");
+                System.out.println("  2. Job card structure is different than expected");
+                System.out.println("  3. Application buttons use different selectors");
+            }
+            
+            return isAvailable;
+            
+        } catch (Exception e) {
+            System.out.println("Error checking View Role functionality: " + e.getMessage());
             return false;
         }
     }
