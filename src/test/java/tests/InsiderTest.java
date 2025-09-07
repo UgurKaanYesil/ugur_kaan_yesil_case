@@ -242,6 +242,102 @@ public class InsiderTest {
         }
     }
     
+    @Test(description = "Test Scenario 4: Validate all filtered job details match criteria")
+    public void testJobDetailsValidation() {
+        System.out.println("Starting Test Scenario 4: Job Details Validation");
+        
+        try {
+            // Step 1: Navigate to QA careers page and apply filters (similar to Scenario 3)
+            System.out.println("Step 1: Setting up filtered job listings...");
+            qaJobsPage.navigateToQACareersPage();
+            
+            TestUtils.assertTrue(qaJobsPage.isQACareersPageLoaded(), "QA careers page should load successfully");
+            System.out.println("✓ QA careers page loaded successfully");
+            
+            qaJobsPage.clickSeeAllQAJobs();
+            System.out.println("✓ Successfully navigated to QA jobs listing");
+            
+            qaJobsPage.applyLocationFilter("Istanbul, Turkey");
+            System.out.println("✓ Location filter applied");
+            
+            qaJobsPage.applyDepartmentFilter("Quality Assurance");
+            System.out.println("✓ Department filter applied");
+            
+            qaJobsPage.applyFilters();
+            System.out.println("✓ Filters applied");
+            
+            // Verify basic job list presence
+            TestUtils.assertTrue(qaJobsPage.isJobsListPresent(), "Jobs list should be present on the page");
+            System.out.println("✓ Jobs list is present");
+            
+            // Step 2: Extract all job details
+            System.out.println("Step 2: Extracting job details from all filtered jobs...");
+            var jobDetailsList = qaJobsPage.getAllJobDetails();
+            
+            TestUtils.assertTrue(!jobDetailsList.isEmpty(), "Should extract job details from at least one job");
+            System.out.println("✓ Successfully extracted details from " + jobDetailsList.size() + " jobs");
+            
+            // Step 3: Validate each job against filter criteria
+            System.out.println("Step 3: Validating each job against filter criteria...");
+            
+            String expectedLocation = "Istanbul, Turkey";
+            String expectedDepartment = "Quality Assurance";
+            
+            var validationSummary = qaJobsPage.validateAllJobs(jobDetailsList, expectedLocation, expectedDepartment);
+            
+            // Step 4: Assert overall validation results
+            System.out.println("Step 4: Asserting validation results...");
+            
+            // Log detailed validation summary
+            System.out.println("\n📊 DETAILED VALIDATION RESULTS:");
+            System.out.println("Total Jobs Validated: " + validationSummary.getTotalJobs());
+            System.out.println("Jobs Passed: " + validationSummary.getPassedJobs());
+            System.out.println("Jobs Failed: " + validationSummary.getFailedJobs());
+            System.out.println("Success Rate: " + String.format("%.1f%%", validationSummary.getSuccessRate()));
+            
+            // For each job, provide individual assertion with meaningful error messages
+            for (int i = 0; i < jobDetailsList.size(); i++) {
+                var job = jobDetailsList.get(i);
+                var result = qaJobsPage.validateJobCriteria(job, expectedLocation, expectedDepartment);
+                
+                // Individual job assertions with detailed error messages
+                TestUtils.assertTrue(result.isValid(), 
+                    String.format("Job %d should meet all filter criteria.\n" +
+                        "Job Details: %s\n" +
+                        "Errors: %s", 
+                        i + 1, job, String.join("; ", result.getErrors())));
+            }
+            
+            // Overall success assertion
+            TestUtils.assertTrue(!validationSummary.hasErrors(), 
+                String.format("All filtered jobs should meet the filter criteria. " +
+                    "Found %d jobs that failed validation out of %d total jobs.\n" +
+                    "Failure Details:\n%s", 
+                    validationSummary.getFailedJobs(), 
+                    validationSummary.getTotalJobs(),
+                    String.join("\n", validationSummary.getAllErrors())));
+            
+            // Success rate assertion (should be 100% for properly filtered jobs)
+            TestUtils.assertTrue(validationSummary.getSuccessRate() == 100.0,
+                String.format("Expected 100%% success rate for filtered jobs, but got %.1f%%. " +
+                    "This indicates filtering is not working correctly or job details extraction needs improvement.",
+                    validationSummary.getSuccessRate()));
+            
+            System.out.println("\n🎉 Test Scenario 4 completed successfully!");
+            System.out.println("All job details validation checks passed:");
+            System.out.println("  ✓ Successfully extracted job details from all filtered jobs");
+            System.out.println("  ✓ All jobs contain Quality Assurance related positions");
+            System.out.println("  ✓ All jobs are associated with Quality Assurance department");
+            System.out.println("  ✓ All jobs are located in Istanbul, Turkey");
+            System.out.println("  ✓ Filtering functionality is working correctly at job level");
+            
+        } catch (Exception e) {
+            System.err.println("❌ Test Scenario 4 failed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
     @Test(description = "Additional verification: Check homepage responsiveness", enabled = false)
     public void testHomepageResponsiveness() {
         System.out.println("Starting additional test: Homepage responsiveness");

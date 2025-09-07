@@ -8,6 +8,7 @@
                     <include name="testHomepageLoads"/>
                     <include name="testCareersPageNavigation"/>
                     <include name="testQAJobsFiltering"/>
+                    <include name="testJobDetailsValidation"/>
                 </methods>
             </class>
         </classes>

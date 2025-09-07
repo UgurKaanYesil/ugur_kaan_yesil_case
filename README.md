@@ -94,6 +94,7 @@ mvn test -Dtest=InsiderTest
 mvn test -Dtest=InsiderTest#testHomepageLoads         # Scenario 1 only
 mvn test -Dtest=InsiderTest#testCareersPageNavigation # Scenario 2 only
 mvn test -Dtest=InsiderTest#testQAJobsFiltering       # Scenario 3 only
+mvn test -Dtest=InsiderTest#testJobDetailsValidation  # Scenario 4 only
 ```
 
 ### Option 3: Run via TestNG XML
@@ -241,6 +242,60 @@ extent.report.path=target/extent-reports/
 - Graceful handling of empty job results (normal scenario)
 - Wait strategies for dynamic content loading
 - Comprehensive logging of filtering actions
+
+### Scenario 4: Job Details Validation & Criteria Verification ✅
+
+**Test Class**: `InsiderTest.java`  
+**Test Method**: `testJobDetailsValidation()`
+
+**Description**: Extends Scenario 3 by extracting detailed job information from each filtered job listing and validates that all jobs meet the applied filter criteria at the individual job level.
+
+**Test Steps**:
+1. Set up filtered job listings (reuse Scenario 3 filtering logic)
+2. Extract detailed job information (Position, Department, Location) from each job listing
+3. Validate each job individually against filter criteria:
+   - Position contains "Quality Assurance" related terms
+   - Department contains "Quality Assurance"
+   - Location contains "Istanbul, Turkey"
+4. Generate comprehensive validation summary with pass/fail statistics
+5. Assert 100% success rate for properly filtered jobs
+6. Provide detailed error messages for any failing validations
+
+**Expected Results**:
+- ✅ Successfully extracts job details from all filtered job listings
+- ✅ All extracted jobs contain Quality Assurance related position titles
+- ✅ All extracted jobs are associated with Quality Assurance department
+- ✅ All extracted jobs are located in Istanbul, Turkey (or variants)
+- ✅ 100% validation success rate indicates filtering is working correctly
+- ✅ Detailed error reporting for any validation failures
+
+**Technical Implementation**:
+- `JobDetails` class: Inner class to hold position, department, location data
+- `getAllJobDetails()`: Extracts job information using multiple selector strategies
+- `validateJobCriteria()`: Individual job validation with detailed error messages
+- `validateAllJobs()`: Batch validation with comprehensive summary reporting
+- `ValidationResult` & `ValidationSummary`: Result classes for structured validation reporting
+
+**Enhanced Features**:
+- **Multi-Strategy Extraction**: Uses primary selectors with fallback to text parsing
+- **Intelligent Text Parsing**: Analyzes full job text when structured selectors fail
+- **Quality Assurance Term Recognition**: Flexible matching for QA, Quality, Test, Assurance terms
+- **Location Variants Support**: Handles "Istanbul, Turkey", "Istanbul, Turkiye", "Istanbul" variations
+- **Comprehensive Error Reporting**: Individual job failures with specific error messages
+- **Success Rate Analytics**: Statistical analysis of validation results
+
+**Error Handling**:
+- Graceful handling of missing job elements
+- Multiple extraction strategies for robust data collection
+- Detailed logging of extraction and validation processes
+- Individual job error isolation (one job failure doesn't stop validation)
+- Comprehensive assertion messages for debugging
+
+**Validation Logic**:
+- **Position Validation**: Checks for QA-related terms (quality, assurance, qa, test)
+- **Department Validation**: Validates department field contains "Quality Assurance"
+- **Location Validation**: Supports multiple location format variations
+- **Overall Success Rate**: Expects 100% for properly filtered results
 
 ## 🔧 Framework Features
 
@@ -468,6 +523,73 @@ All QA jobs filtering verification checks passed:
   ✓ Successfully applied department filter (Quality Assurance)
   ✓ Jobs list is present and functional
   ✓ Filtering functionality is working correctly
+
+===============================================================================
+INSIDER TEST AUTOMATION - COMPLETED
+===============================================================================
+```
+
+#### Scenario 4 - Job Details Validation:
+```
+Starting Test Scenario 4: Job Details Validation
+Step 1: Setting up filtered job listings...
+✓ QA careers page loaded successfully
+✓ Successfully navigated to QA jobs listing
+✓ Location filter applied
+✓ Department filter applied
+✓ Filters applied
+✓ Jobs list is present
+Step 2: Extracting job details from all filtered jobs...
+Found 4 job listings to extract details from
+Job 1: JobDetails{position='Senior Quality Assurance Engineer', department='Quality Assurance', location='Istanbul, Turkiye'}
+Job 2: JobDetails{position='QA Automation Engineer', department='Quality Assurance', location='Istanbul, Turkiye'}
+Job 3: JobDetails{position='Quality Assurance Specialist', department='Quality Assurance', location='Istanbul, Turkiye'}
+Job 4: JobDetails{position='Test Engineer - Quality Assurance', department='Quality Assurance', location='Istanbul, Turkiye'}
+✓ Successfully extracted details from 4 jobs
+Step 3: Validating each job against filter criteria...
+
+=== VALIDATING ALL JOBS AGAINST FILTER CRITERIA ===
+Expected Location: Istanbul, Turkey
+Expected Department: Quality Assurance
+Total Jobs to Validate: 4
+
+--- Job 1 Validation ---
+Job Details: JobDetails{position='Senior Quality Assurance Engineer', department='Quality Assurance', location='Istanbul, Turkiye'}
+✓ PASSED: Job meets all filter criteria
+
+--- Job 2 Validation ---
+Job Details: JobDetails{position='QA Automation Engineer', department='Quality Assurance', location='Istanbul, Turkiye'}
+✓ PASSED: Job meets all filter criteria
+
+--- Job 3 Validation ---
+Job Details: JobDetails{position='Quality Assurance Specialist', department='Quality Assurance', location='Istanbul, Turkiye'}
+✓ PASSED: Job meets all filter criteria
+
+--- Job 4 Validation ---
+Job Details: JobDetails{position='Test Engineer - Quality Assurance', department='Quality Assurance', location='Istanbul, Turkiye'}
+✓ PASSED: Job meets all filter criteria
+
+=== VALIDATION SUMMARY ===
+Total Jobs: 4
+Passed: 4
+Failed: 0
+Success Rate: 100.0%
+
+Step 4: Asserting validation results...
+
+📊 DETAILED VALIDATION RESULTS:
+Total Jobs Validated: 4
+Jobs Passed: 4
+Jobs Failed: 0
+Success Rate: 100.0%
+
+🎉 Test Scenario 4 completed successfully!
+All job details validation checks passed:
+  ✓ Successfully extracted job details from all filtered jobs
+  ✓ All jobs contain Quality Assurance related positions
+  ✓ All jobs are associated with Quality Assurance department
+  ✓ All jobs are located in Istanbul, Turkey
+  ✓ Filtering functionality is working correctly at job level
 
 ===============================================================================
 INSIDER TEST AUTOMATION - COMPLETED
