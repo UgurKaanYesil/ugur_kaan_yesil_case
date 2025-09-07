@@ -1,4 +1,4 @@
-# Insider Test Automation Framework
+# Test Automation Framework
 
 A comprehensive Maven-based Java Selenium test automation framework implementing the Page Object Model (POM) pattern for testing Insider careers website functionality.
 
