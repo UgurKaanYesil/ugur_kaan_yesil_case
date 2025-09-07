@@ -9,6 +9,7 @@
                     <include name="testCareersPageNavigation"/>
                     <include name="testQAJobsFiltering"/>
                     <include name="testJobDetailsValidation"/>
+                    <include name="testLeverApplicationRedirect"/>
                 </methods>
             </class>
         </classes>
