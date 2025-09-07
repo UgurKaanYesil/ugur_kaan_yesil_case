@@ -16,7 +16,7 @@ public class HomePage extends BasePage {
     private final By careersMenuLink = By.cssSelector("a[href*='careers'], a[contains(text(),'Careers')], a[contains(text(),'Jobs')]");
     private final By careersInDropdown = By.cssSelector(".dropdown-menu a[href*='careers'], .submenu a[href*='careers']");
     
-    private final By acceptCookiesButton = By.cssSelector("button:contains('Accept All'), .accept-all, [data-accept='all']");
+    private final By acceptCookiesButton = By.cssSelector(".accept-all, [data-accept='all'], [class*='accept'], [id*='accept']");
     private final By pageHeader = By.cssSelector("h1, .hero-title, .main-title, .page-title");
     private final By homePageContent = By.cssSelector("body, html, .container, .wrapper, main, section");
     
@@ -37,8 +37,9 @@ public class HomePage extends BasePage {
     
     private void handleCookieConsent() {
         try {
-            // Try multiple cookie accept selectors
+            // Try multiple cookie accept selectors with user-provided XPath
             By[] cookieSelectors = {
+                By.xpath("//a[@id='wt-cli-accept-all-btn']"), // User-provided exact XPath
                 By.xpath("//button[contains(text(), 'Accept All')]"),
                 By.xpath("//button[contains(text(), 'Accept')]"),
                 By.cssSelector("button[class*='accept']"),
@@ -50,8 +51,12 @@ public class HomePage extends BasePage {
                 try {
                     if (isElementDisplayed(selector)) {
                         clickElement(selector);
-                        try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); } // Brief wait after accepting cookies
-                        System.out.println("Cookie consent accepted successfully");
+                        try { 
+                            Thread.sleep(1000); 
+                            System.out.println("✓ Cookie consent accepted successfully");
+                        } catch (InterruptedException e) { 
+                            Thread.currentThread().interrupt(); 
+                        }
                         return;
                     }
                 } catch (Exception ignored) {
@@ -247,11 +252,11 @@ public class HomePage extends BasePage {
         handleCookieConsent();
     }
     
-    public void scrollToTop() {
-        scrollToTop();
+    public void scrollPageToTop() {
+        super.scrollToTop();
     }
     
-    public void scrollToBottom() {
-        scrollToBottom();
+    public void scrollPageToBottom() {
+        super.scrollToBottom();
     }
 }

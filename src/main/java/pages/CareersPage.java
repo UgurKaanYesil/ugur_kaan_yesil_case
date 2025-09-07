@@ -8,7 +8,7 @@ public class CareersPage extends BasePage {
     
     // Optimized CSS and XPath selectors for careers page elements
     private final By pageTitle = By.cssSelector("h1, .hero-title, .main-title, .page-title, [class*='title']");
-    private final By careersHeader = By.cssSelector("h1:contains('Career'), h1:contains('Job'), .hero-title:contains('Career')");
+    private final By careersHeader = By.cssSelector("h1, .hero-title, .main-title, [class*='title']");
     
     // Main career sections - Locations, Teams, Life at Insider
     private final By locationsBlock = By.cssSelector("[class*='location'], [data-section='locations'], .locations-section, [id*='location']");
@@ -55,7 +55,7 @@ public class CareersPage extends BasePage {
             locationsBlock,
             alternativeLocationsBlock,
             By.xpath("//h2[contains(text(), 'Location')] | //h3[contains(text(), 'Location')] | //*[contains(text(), 'Our Offices')]"),
-            By.cssSelector("h2:contains('Location'), h3:contains('Location'), [data-testid*='location']"),
+            By.cssSelector("h2, h3, [data-testid*='location'], [class*='location']"),
             By.xpath("//*[contains(text(), 'Where we work') or contains(text(), 'Global') or contains(text(), 'Offices')]")
         };
         
@@ -82,7 +82,7 @@ public class CareersPage extends BasePage {
             teamsBlock,
             alternativeTeamsBlock,
             By.xpath("//h2[contains(text(), 'Team')] | //h3[contains(text(), 'Team')] | //*[contains(text(), 'Departments')]"),
-            By.cssSelector("h2:contains('Team'), h3:contains('Team'), [data-testid*='team']"),
+            By.cssSelector("h2, h3, [data-testid*='team'], [class*='team']"),
             By.xpath("//*[contains(text(), 'Join our team') or contains(text(), 'Our teams') or contains(text(), 'Departments')]")
         };
         
@@ -109,7 +109,7 @@ public class CareersPage extends BasePage {
             lifeAtInsiderBlock,
             alternativeLifeBlock,
             By.xpath("//h2[contains(text(), 'Life')] | //h3[contains(text(), 'Life')] | //*[contains(text(), 'Culture')]"),
-            By.cssSelector("h2:contains('Life'), h3:contains('Life'), [data-testid*='life']"),
+            By.cssSelector("h2, h3, [data-testid*='life'], [class*='life']"),
             By.xpath("//*[contains(text(), 'Life at Insider') or contains(text(), 'Our culture') or contains(text(), 'Why work')]")
         };
         

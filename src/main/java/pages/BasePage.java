@@ -4,22 +4,34 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.FluentWait;
 import java.time.Duration;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public abstract class BasePage {
     protected WebDriver driver;
     protected WebDriverWait wait;
+    protected FluentWait<WebDriver> fluentWait;
     
     private static final int DEFAULT_TIMEOUT = 15;
+    private static final int POLLING_INTERVAL = 1;
     
     public BasePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT));
+        this.fluentWait = new FluentWait<>(driver)
+                .withTimeout(Duration.ofSeconds(DEFAULT_TIMEOUT))
+                .pollingEvery(Duration.ofSeconds(POLLING_INTERVAL))
+                .ignoring(NoSuchElementException.class, StaleElementReferenceException.class);
     }
     
     protected WebElement findElement(By locator) {
-        return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        try {
+            return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        } catch (TimeoutException e) {
+            throw new RuntimeException("Element not found within timeout: " + locator, e);
+        }
     }
     
     protected List<WebElement> findElements(By locator) {
@@ -35,13 +47,26 @@ public abstract class BasePage {
     }
     
     protected void clickElement(By locator) {
-        findClickableElement(locator).click();
+        try {
+            WebElement element = findClickableElement(locator);
+            element.click();
+        } catch (ElementClickInterceptedException e) {
+            // Retry with JavaScript click
+            WebElement element = findElement(locator);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to click element: " + locator, e);
+        }
     }
     
     protected void sendKeys(By locator, String text) {
-        WebElement element = findVisibleElement(locator);
-        element.clear();
-        element.sendKeys(text);
+        try {
+            WebElement element = findVisibleElement(locator);
+            element.clear();
+            element.sendKeys(text);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send keys to element: " + locator + ", text: " + text, e);
+        }
     }
     
     protected String getText(By locator) {
@@ -54,8 +79,10 @@ public abstract class BasePage {
     
     protected boolean isElementDisplayed(By locator) {
         try {
-            return findElement(locator).isDisplayed();
-        } catch (TimeoutException | NoSuchElementException e) {
+            WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+            WebElement element = shortWait.until(ExpectedConditions.presenceOfElementLocated(locator));
+            return element.isDisplayed();
+        } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
             return false;
         }
     }
@@ -82,12 +109,26 @@ public abstract class BasePage {
     }
     
     protected void scrollToElement(By locator) {
-        WebElement element = findElement(locator);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
+        try {
+            WebElement element = findElement(locator);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element);
+            Thread.sleep(500); // Brief pause after smooth scroll
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not scroll to element " + locator + ": " + e.getMessage());
+        }
     }
     
     protected void scrollToElementByJS(WebElement element) {
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
+        try {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element);
+            Thread.sleep(500); // Brief pause after smooth scroll
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not scroll to element: " + e.getMessage());
+        }
     }
     
     protected void scrollToTop() {
@@ -99,12 +140,24 @@ public abstract class BasePage {
     }
     
     protected void hoverOverElement(WebElement element) {
-        Actions actions = new Actions(driver);
-        actions.moveToElement(element).perform();
+        try {
+            Actions actions = new Actions(driver);
+            actions.moveToElement(element).perform();
+            Thread.sleep(1000); // Wait for hover effects
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not hover over element: " + e.getMessage());
+        }
     }
     
     protected void refreshPage() {
-        driver.navigate().refresh();
+        try {
+            driver.navigate().refresh();
+            Thread.sleep(2000); // Wait for page refresh
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
     
     protected String getPageTitle() {

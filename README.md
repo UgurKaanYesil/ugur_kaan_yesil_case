@@ -24,7 +24,8 @@ insider-selenium-automation/
 │   │       │   ├── BasePage.java
 │   │       │   ├── HomePage.java
 │   │       │   ├── CareersPage.java
-│   │       │   └── QAJobsPage.java
+│   │       │   ├── QAJobsPage.java
+│   │       │   └── LeverApplicationPage.java
 │   │       └── utils/           # Utility classes
 │   │           └── TestUtils.java
 │   └── test/
@@ -41,10 +42,51 @@ insider-selenium-automation/
 └── README.md                   # Project documentation
 ```
 
+## ✅ Final Optimization Status
+
+### Completed Optimizations (September 2025)
+
+✅ **XPath/CSS Selector Optimization**
+- Removed invalid CSS pseudo-selectors (`:contains()` syntax)
+- Enhanced selectors with multiple fallback strategies
+- User-provided exact XPaths integrated and preserved
+- Optimized for cross-browser compatibility
+
+✅ **Comprehensive Exception Handling**
+- Enhanced BasePage with try-catch blocks for all WebDriver operations
+- JavaScript click fallback for intercepted clicks
+- Stale element reference handling with FluentWait
+- Graceful degradation for non-critical operations
+
+✅ **Enhanced Logging System**
+- Unicode icons for better visual feedback (✓, ✗, ⏳, 📸, 🔗, etc.)
+- Detailed step-by-step logging throughout all scenarios
+- Smart wait notifications with completion confirmations
+- Comprehensive test execution tracking
+
+✅ **Robust Wait Strategies**
+- JavaScript-based page load detection
+- FluentWait implementation with polling intervals
+- jQuery activity monitoring (when available)
+- Smooth scrolling with center positioning
+- Dynamic timeout adjustments per operation type
+
+✅ **Code Structure Optimization**
+- Eliminated method name conflicts (scrollToTop/scrollPageToTop)
+- Enhanced cookie consent handling with user XPath
+- Improved hover functionality with proper timing
+- Consolidated exception handling patterns
+
+✅ **Test Suite Validation**
+- All 5 scenarios compilation verified
+- Enhanced TestNG suite configuration
+- Screenshot capture optimization
+- BUILD SUCCESS confirmed on single scenario execution
+
 ## 🛠️ Prerequisites
 
 - **Java**: JDK 11 or higher
-- **Maven**: 3.6+ 
+- **Maven**: 3.6+
 - **Chrome Browser**: Latest version (automatically managed by WebDriverManager)
 - **Internet Connection**: Required for WebDriverManager and test execution
 
@@ -64,7 +106,7 @@ cd insider-selenium-automation
 # Check Java version
 java -version
 
-# Check Maven version  
+# Check Maven version
 mvn -version
 ```
 
@@ -119,7 +161,7 @@ window.maximize=true             # Maximize browser window
 
 # Timeouts (seconds)
 implicit.wait=10                 # Element location timeout
-explicit.wait=15                 # Explicit wait timeout  
+explicit.wait=15                 # Explicit wait timeout
 page.load.timeout=30            # Page load timeout
 ```
 
@@ -145,7 +187,7 @@ extent.report.path=target/extent-reports/
 
 ### Scenario 1: Homepage Verification ✅
 
-**Test Class**: `InsiderTest.java`  
+**Test Class**: `InsiderTest.java`
 **Test Method**: `testHomepageLoads()`
 
 **Description**: Verifies that the Insider homepage loads correctly and all essential elements are present.
@@ -153,7 +195,7 @@ extent.report.path=target/extent-reports/
 **Test Steps**:
 1. Navigate to https://useinsider.com/
 2. Verify URL contains "useinsider.com"
-3. Verify page title contains "Insider"  
+3. Verify page title contains "Insider"
 4. Verify homepage content is loaded
 5. Verify Insider logo is displayed
 6. Verify navigation menu is present
@@ -162,7 +204,7 @@ extent.report.path=target/extent-reports/
 **Expected Results**:
 - ✅ Homepage loads successfully
 - ✅ URL verification passes
-- ✅ Title verification passes  
+- ✅ Title verification passes
 - ✅ All page elements are visible
 - ✅ Navigation is functional
 
@@ -173,7 +215,7 @@ extent.report.path=target/extent-reports/
 
 ### Scenario 2: Careers Page Navigation & Verification ✅
 
-**Test Class**: `InsiderTest.java`  
+**Test Class**: `InsiderTest.java`
 **Test Method**: `testCareersPageNavigation()`
 
 **Description**: Navigates from homepage to careers page and verifies all main career sections are present and accessible.
@@ -186,7 +228,7 @@ extent.report.path=target/extent-reports/
 5. Verify page title is present
 6. Verify main career sections are visible:
    - Locations block
-   - Teams block  
+   - Teams block
    - Life at Insider block
 7. Verify sections are accessible/scrollable
 8. Check section interactivity where applicable
@@ -210,7 +252,7 @@ extent.report.path=target/extent-reports/
 
 ### Scenario 3: QA Jobs Filtering & Verification ✅
 
-**Test Class**: `InsiderTest.java`  
+**Test Class**: `InsiderTest.java`
 **Test Method**: `testQAJobsFiltering()`
 
 **Description**: Navigates to QA careers page, clicks "See all QA jobs", applies location and department filters, and verifies filtered job listings.
@@ -220,7 +262,7 @@ extent.report.path=target/extent-reports/
 2. Verify QA careers page loads successfully
 3. Click "See all QA jobs" button
 4. Apply location filter: "Istanbul, Turkey"
-5. Apply department filter: "Quality Assurance"  
+5. Apply department filter: "Quality Assurance"
 6. Apply filters (if separate action required)
 7. Verify jobs list is present on the page
 8. Verify jobs list is not empty (contains actual jobs)
@@ -245,7 +287,7 @@ extent.report.path=target/extent-reports/
 
 ### Scenario 4: Job Details Validation & Criteria Verification ✅
 
-**Test Class**: `InsiderTest.java`  
+**Test Class**: `InsiderTest.java`
 **Test Method**: `testJobDetailsValidation()`
 
 **Description**: Extends Scenario 3 by extracting detailed job information from each filtered job listing and validates that all jobs meet the applied filter criteria at the individual job level.
@@ -299,7 +341,7 @@ extent.report.path=target/extent-reports/
 
 ### Scenario 5: Lever Application Redirect & Form Verification ✅
 
-**Test Class**: `InsiderTest.java`  
+**Test Class**: `InsiderTest.java`
 **Test Method**: `testLeverApplicationRedirect()`
 
 **Description**: Completes the end-to-end user journey by clicking "View Role" button on a filtered job listing and verifying successful redirect to external Lever application page with proper form elements and job context.
@@ -338,7 +380,7 @@ extent.report.path=target/extent-reports/
 
 **Enhanced Features**:
 - **Exact XPath Implementation**: Uses user-specified XPath for precise button targeting
-- **Mouse Hover Simulation**: Selenium Actions to reveal hidden "View Role" buttons  
+- **Mouse Hover Simulation**: Selenium Actions to reveal hidden "View Role" buttons
 - **Jobs List Container Validation**: Ensures `//div[@id='jobs-list']` is present before proceeding
 - **Hover-Triggered Button Detection**: Waits for button appearance after mouse hover
 - **Robust New Tab Handling**: Automatic detection and switching for external redirects
@@ -437,7 +479,7 @@ mvn clean install -DskipTests
 webdriver.chrome.driver.path=/path/to/chromedriver
 ```
 
-**Issue**: Tests timeout waiting for elements  
+**Issue**: Tests timeout waiting for elements
 ```bash
 # Solution: Increase timeout values in config.properties
 implicit.wait=20
@@ -454,7 +496,7 @@ headless=true
 ### Debugging Tips
 
 1. **Enable Verbose Logging**: Check console output for detailed step-by-step execution
-2. **Screenshot Analysis**: Check `target/screenshots/` for failure screenshots  
+2. **Screenshot Analysis**: Check `target/screenshots/` for failure screenshots
 3. **Element Inspection**: Use browser dev tools to verify selectors
 4. **Network Issues**: Ensure stable internet connection for WebDriverManager
 

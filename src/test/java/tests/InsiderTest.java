@@ -509,8 +509,8 @@ public class InsiderTest {
         TestUtils.assertElementDisplayed(homePage.isHomePageLoaded(), "Homepage loads within timeout");
         
         // Test scrolling functionality
-        homePage.scrollToBottom();
-        homePage.scrollToTop();
+        homePage.scrollPageToBottom();
+        homePage.scrollPageToTop();
         
         // Verify page is still functional after scrolling
         TestUtils.assertElementDisplayed(homePage.isInsiderLogoDisplayed(), "Logo still visible after scrolling");
